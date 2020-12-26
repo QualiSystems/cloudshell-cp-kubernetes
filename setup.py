@@ -3,7 +3,7 @@ import os
 from setuptools import find_packages, setup
 from setuptools.version import __version__ as setuptools_version
 
-if tuple(map(int, setuptools_version.split("."))) < (40, 0):
+if tuple(map(int, setuptools_version.split(".")[:2])) < (40, 0):
     import sys
 
     python = sys.executable
@@ -27,7 +27,7 @@ with open("test_requirements.txt") as f_tests:
     required_for_tests = f_tests.read().splitlines()
 
 setup(
-    name="cloudshell-template",
+    name="cloudshell-cp-kubernetes",
     url="http://www.qualisystems.com/",
     author="QualiSystems",
     author_email="info@qualisystems.com",
