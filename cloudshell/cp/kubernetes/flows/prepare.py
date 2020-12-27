@@ -1,28 +1,22 @@
 from cloudshell.cp.core.flows import AbstractPrepareSandboxInfraFlow
-from cloudshell.cp.core.request_actions.models import PrepareCloudInfra, PrepareCloudInfraResult, PrepareSubnet, \
-    PrepareSubnetActionResult, CreateKeys, CreateKeysActionResult
-
-from cloudshell.cp.kubernetes.common.utils import single
 from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class PrepareSandboxInfraFlow(AbstractPrepareSandboxInfraFlow):
-    def __init__(self, logger, resource_config, service_provider, cancellation_manager):
+    def __init__(self, logger, resource_config, service_provider):
         """
         :param logging.Logger logger:
         :param cloudshell.cp.kubernetes.resource_config.KubernetesResourceConfig resource_config:
         :param cloudshell.cp.kubernetes.services.service_provider.ServiceProvider service_provider:
-        :param cloudshell.cp.core.cancellation_manager.CancellationContextManager cancellation_manager:
         """
         super().__init__(logger)
         self._resource_config = resource_config
         self._service_provider = service_provider
-        self._cancelation_manager = cancellation_manager
 
     def prepare_subnets(self, request_actions):
         # result = {}
         # for subnet  in request_actions.prepare_subnets:
-            # result[subnet.actionId]=
+        # result[subnet.actionId]=
         # self._validate_single_subnet_mode(request_actions)
 
         # we dont need any info from the actions at the moment so just prepare the results
@@ -65,5 +59,5 @@ class PrepareSandboxInfraFlow(AbstractPrepareSandboxInfraFlow):
 
     # def _validate_single_subnet_mode(self, actions):
     #     validate single subnet mode
-        # if len(list(filter(lambda x: isinstance(x, PrepareSubnet), actions))) > 1:
-        #     raise ValueError("Multiple subnets are not supported by the Kubernetes Shell")
+    # if len(list(filter(lambda x: isinstance(x, PrepareSubnet), actions))) > 1:
+    #     raise ValueError("Multiple subnets are not supported by the Kubernetes Shell")

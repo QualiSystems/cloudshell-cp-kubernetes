@@ -20,7 +20,7 @@ class VmDetailsProvider(object):
         vm_instance_data = self._get_vm_instance_data(services, deployment, deployed_app)
 
         return VmDetailsData(vmInstanceData=vm_instance_data,
-                             vmNetworkData=None,
+                             vmNetworkData=[],
                              appName=deploy_app_name)
 
     def _get_vm_instance_data(self, services, deployment, deployed_app):
@@ -99,5 +99,5 @@ class VmDetailsProvider(object):
         return deployment.status.ready_replicas if deployment.status.ready_replicas else '0'
 
     def _get_image(self, deployment):
-        images = list(set([c.image for c in deployment.spec.template.spec.containers]))
+        images = set([c.image for c in deployment.spec.template.spec.containers])
         return ', '.join(images)

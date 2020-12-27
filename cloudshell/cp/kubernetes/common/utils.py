@@ -53,7 +53,7 @@ def get_custom_params_value(custom_params_list, key):
 
 def dump_context(operation, context, path, obj=True):
     if os.path.exists(path):
-        with open(os.path.join(path, "{}-{}.yaml".format(operation, datetime.now().strftime("%Y%m%d-%H%M"))),
+        with open(os.path.join(path, "{}-{}.yaml".format(operation, datetime.now().strftime("%Y%m%d-%H%M%S"))),
                   "w+") as ff:
             if obj:
                 ff.write(yaml.dump(context, default_flow_style=False))

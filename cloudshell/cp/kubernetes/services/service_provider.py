@@ -6,21 +6,22 @@ from cloudshell.cp.kubernetes.services.networking import KubernetesNetworkingSer
 
 
 class ServiceProvider(object):
-    def __init__(self, api_clients, logger):
+    def __init__(self, api_clients, logger, cancellation_manager):
         self.api_clients = api_clients
         self.logger = logger
+        self.cancellation_manager = cancellation_manager
 
     @property
     @lru_cache()
     def networking_service(self):
-        return KubernetesNetworkingService(self.logger, self.api_clients)
+        return KubernetesNetworkingService(self.logger, self.api_clients, self.cancellation_manager)
 
     @property
     @lru_cache()
     def deployment_service(self):
-        return KubernetesDeploymentService(self.logger, self.api_clients)
+        return KubernetesDeploymentService(self.logger, self.api_clients, self.cancellation_manager)
 
     @property
     @lru_cache()
     def namespace_service(self):
-        return KubernetesNamespaceService(self.logger, self.api_clients)
+        return KubernetesNamespaceService(self.logger, self.api_clients, self.cancellation_manager)

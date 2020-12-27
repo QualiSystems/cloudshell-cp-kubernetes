@@ -7,7 +7,7 @@ from cloudshell.cp.kubernetes.services.tags import TagsService
 class KubernetesNamespaceService(object):
     TERMINATING_STATUS = "Terminating"
 
-    def __init__(self, logger, clients):
+    def __init__(self, logger, clients, cancellation_manager):
         """
 
         :param logging.Logger logger:
@@ -15,6 +15,7 @@ class KubernetesNamespaceService(object):
         """
         self._logger = logger
         self._clients = clients
+        self.cancellation_manager = cancellation_manager
 
     def create(self, name, labels, annotations):
         """

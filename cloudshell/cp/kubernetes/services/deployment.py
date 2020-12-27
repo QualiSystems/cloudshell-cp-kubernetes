@@ -9,7 +9,7 @@ from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class KubernetesDeploymentService:
-    def __init__(self, logger, clients):
+    def __init__(self, logger, clients, cancellation_manager):
         """
 
         :param logging.Logger logger:
@@ -17,6 +17,7 @@ class KubernetesDeploymentService:
         """
         self._logger = logger
         self._clients = clients
+        self.cancellation_manager = cancellation_manager
 
     def delete_app(self, namespace, app_name_to_delete):
         """
@@ -29,14 +30,15 @@ class KubernetesDeploymentService:
             delete_options = V1DeleteOptions(propagation_policy='Foreground',
                                              grace_period_seconds=0)
             self._clients.apps_api.delete_namespaced_deployment(name=app_name_to_delete,
-                                                          namespace=namespace,
-                                                          body=delete_options,
-                                                          pretty='true')
+                                                                namespace=namespace,
+                                                                body=delete_options,
+                                                                pretty='true')
         except ApiException as e:
             if e.status == 404:
                 # Deployment does not exist, nothing to delete but
                 # we can consider this a success.
-                self._logger.warning('not deleting nonexistent deploy/{} from ns/{}'.format(app_name_to_delete, namespace))
+                self._logger.warning(
+                    'not deleting nonexistent deploy/{} from ns/{}'.format(app_name_to_delete, namespace))
             else:
                 raise
         else:
@@ -81,8 +83,8 @@ class KubernetesDeploymentService:
         self._logger.debug(deployment.to_str())
 
         return self._clients.apps_api.create_namespaced_deployment(namespace=namespace,
-                                                             body=deployment,
-                                                             pretty='true')
+                                                                   body=deployment,
+                                                                   pretty='true')
 
     @staticmethod
     def _prepare_app_container(name, image, start_command, environment_variables, compute_spec, internal_ports,
@@ -194,14 +196,14 @@ class KubernetesDeploymentService:
                 try:
                     query_selector = self._prepare_deployment_default_label_selector(app_name)
                     pods = self._clients.core_api.list_namespaced_pod(namespace=namespace,
-                                                                label_selector=query_selector).items
+                                                                      label_selector=query_selector).items
                     self._logger.error("Deployment dump:")
                     self._logger.error(str(deployment))
                     self._logger.error("Pods dump:")
                     self._logger.error(str(pods))
                 except:
                     self._logger.exception("Failed to get more data about pods and deployment for deployed app {}"
-                                     .format(deployed_app_name))
+                                           .format(deployed_app_name))
 
                 raise TimeoutError('Timeout waiting for {} replicas to be ready for deployed app {}. '
                                    'Please look at the logs for more information'
@@ -223,7 +225,8 @@ class KubernetesDeploymentService:
 
         while True:
             result = \
-                self._clients.apps_api.list_namespaced_deployment(namespace=namespace, label_selector=query_selector).items
+                self._clients.apps_api.list_namespaced_deployment(namespace=namespace,
+                                                                  label_selector=query_selector).items
             if not result:
                 return
             if time.time() - start_time >= timeout:
@@ -258,7 +261,7 @@ class KubernetesDeploymentService:
         """
         query_selector = self._prepare_deployment_default_label_selector(app_name)
         items = self._clients.apps_api.list_namespaced_deployment(namespace=namespace, label_selector=query_selector,
-                                                            watch=False).items
+                                                                  watch=False).items
         if not items:
             return None
         if len(items) > 1:

@@ -6,14 +6,16 @@ from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class KubernetesNetworkingService(object):
-    def __init__(self, logger, clients):
+    def __init__(self, logger, clients, cancellation_manager):
         """
 
         :param logging.Logger logger:
         :param cloudshell.cp.kubernetes.models.clients.KubernetesClients clients:
+        :param cloudshell.cp.core.cancellation_manager.CancellationContextManager cancellation_manager:
         """
         self._logger = logger
         self._clients = clients
+        self._cancellation_manager = cancellation_manager
 
     def create_internal_external_set(self, namespace, name, labels, internal_ports, external_ports,
                                      external_service_type):

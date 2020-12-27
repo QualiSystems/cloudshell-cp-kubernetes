@@ -13,19 +13,17 @@ from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class DeployFlow(AbstractDeployFlow):
-    def __init__(self, logger, resource_config, service_provider, vm_details_provider, cancellation_manager):
+    def __init__(self, logger, resource_config, service_provider, vm_details_provider):
         """
         :param logging.Logger logger:
         :param cloudshell.cp.kubernetes.resource_config.KubernetesResourceConfig resource_config:
         :param cloudshell.cp.kubernetes.services.service_provider.ServiceProvider service_provider:
         :param cloudshell.cp.kubernetes.services.vm_details.VmDetailsProvider vm_details_provider:
-        :param cloudshell.cp.core.cancellation_manager.CancellationContextManager cancellation_manager:
         """
         super().__init__(logger)
         self._resource_config = resource_config
         self._service_provider = service_provider
         self._vm_details_provider = vm_details_provider
-        self._cancelation_manager = cancellation_manager
 
     def _deploy(self, request_actions):
         """
@@ -136,7 +134,7 @@ class DeployFlow(AbstractDeployFlow):
         """
         :param str namespace:
         :param int replicas:
-        :param int wait_for_replicas_to_be_ready
+        :param int wait_for_replicas_to_be_ready:
         :rtype: Dict
         """
         return {

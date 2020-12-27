@@ -1,6 +1,3 @@
-from cloudshell.cp.kubernetes.models.clients import KubernetesClients
-
-
 class AutolaodFlow(object):
 
     def __init__(self, api_clients):
