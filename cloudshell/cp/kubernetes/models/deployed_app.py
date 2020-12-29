@@ -9,6 +9,10 @@ class KubernetesDeployedApp(DeployedApp):
     def kubernetes_name(self):
         return self.vmdetails.uid
 
+    @property
+    def cloudshell_resource_name(self):
+        return self.name
+
     def _get_vm_details_value(self, name):
         return (list(filter(lambda x: x.get("name") == name,
                             self.vmdetails.vm_custom_params)) + [{}])[0].get("value")

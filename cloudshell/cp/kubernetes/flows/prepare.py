@@ -14,19 +14,7 @@ class PrepareSandboxInfraFlow(AbstractPrepareSandboxInfraFlow):
         self._service_provider = service_provider
 
     def prepare_subnets(self, request_actions):
-        # result = {}
-        # for subnet  in request_actions.prepare_subnets:
-        # result[subnet.actionId]=
-        # self._validate_single_subnet_mode(request_actions)
-
-        # we dont need any info from the actions at the moment so just prepare the results
-        # extract actions and create results.
-        # prep_network_action = single(request_actions., lambda x: isinstance(x, PrepareCloudInfra))
-        # prep_network_action = request_actions.
-        # prep_network_action_result = PrepareCloudInfraResult(prep_network_action.actionId)
-
-        # prep_subnet_action = single(request_actions, lambda x: isinstance(x, PrepareSubnet))
-        # prep_subnet_action_result = PrepareSubnetActionResult(prep_subnet_action.actionId)
+        self._validate_single_subnet_mode(request_actions)
         return {}
 
     def create_ssh_keys(self, request_actions):
@@ -57,7 +45,6 @@ class PrepareSandboxInfraFlow(AbstractPrepareSandboxInfraFlow):
 
         # return PrepareCloudInfraResult(actionId=request_actions.prepare_cloud_infra.actionId)
 
-    # def _validate_single_subnet_mode(self, actions):
-    #     validate single subnet mode
-    # if len(list(filter(lambda x: isinstance(x, PrepareSubnet), actions))) > 1:
-    #     raise ValueError("Multiple subnets are not supported by the Kubernetes Shell")
+    def _validate_single_subnet_mode(self, actions):
+        if len(actions.prepare_subnets) > 1:
+            raise ValueError("Multiple subnets are not supported by the Kubernetes Shell")

@@ -260,8 +260,8 @@ class KubernetesDeploymentService:
         :rtype: AppsV1beta1Deployment
         """
         query_selector = self._prepare_deployment_default_label_selector(app_name)
-        items = self._clients.apps_api.list_namespaced_deployment(namespace=namespace, label_selector=query_selector,
-                                                                  watch=False).items
+        items = self._clients.apps_api.list_namespaced_deployment(namespace=namespace,
+                                                                  label_selector=query_selector).items
         if not items:
             return None
         if len(items) > 1:
