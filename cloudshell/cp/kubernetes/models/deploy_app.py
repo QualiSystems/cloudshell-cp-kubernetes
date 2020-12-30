@@ -4,8 +4,8 @@ from cloudshell.shell.standards.core.resource_config_entities import ResourceAtt
 
 class KubernetesDeployApp(DeployApp):
     DEPLOYMENT_PATH = "Kubernetes Cloud Provider Shell 2G.Kubernetes Service"
-    docker_image_name = ResourceAttrRO("Docker Image Name", "DEPLOYMENT_PATH")
-    docker_image_tag = ResourceAttrRO("Docker Image Tag", "DEPLOYMENT_PATH")
+    docker_image_name = ResourceAttrRO("Image Name", "DEPLOYMENT_PATH")
+    docker_image_tag = ResourceAttrRO("Image Tag", "DEPLOYMENT_PATH")
     internal_ports = ResourceAttrRO("Internal Ports", "DEPLOYMENT_PATH")
     external_ports = ResourceAttrRO("External Ports", "DEPLOYMENT_PATH")
     replicas = ResourceAttrRO("Replicas", "DEPLOYMENT_PATH")
