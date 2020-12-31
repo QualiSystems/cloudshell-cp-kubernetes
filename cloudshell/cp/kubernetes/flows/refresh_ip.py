@@ -10,7 +10,7 @@ class RefreshIpFlow(object):
         :param cloudshell.cp.kubernetes.resource_config.KubernetesResourceConfig resource_config:
         :param cloudshell.cp.kubernetes.services.service_provider.ServiceProvider service_provider:
         """
-        super().__init__(logger)
+        self._logger = logger
         self._resource_config = resource_config
         self._service_provider = service_provider
 
@@ -22,5 +22,5 @@ class RefreshIpFlow(object):
         ext_ip = self._service_provider.networking_service.get_app_ext_address(deployed_app.kubernetes_name,
                                                                                deployed_app.namespace)
         if ext_ip:
-            cs_api = self._resource_config.api # type: CloudShellAPISession
-            cs_api.SetAttributeValue(deployed_app.name, "Public IP", ext_ip)
+            cs_api = self._resource_config.api  # type: CloudShellAPISession
+            cs_api.SetAttributeValue(deployed_app.name, "Public IP", str(ext_ip))
