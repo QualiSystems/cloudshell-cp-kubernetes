@@ -36,9 +36,9 @@ class VmDetailsProvider(object):
         data = [VmDetailsProperty(key='Image', value=self._get_image(deployment)),
                 VmDetailsProperty(key='Replicas', value=self._get_replicas(deployment, deployed_app)),
                 VmDetailsProperty(key='Ready Replicas', value=self._get_ready_replicas(deployment)),
-                VmDetailsProperty(key='Internal IP', value=self._get_internal_ip(internal_service)),
+                VmDetailsProperty(key='Internal IP', value=self.get_internal_ip(internal_service)),
                 VmDetailsProperty(key='Internal Ports', value=self._get_service_ports(internal_service)),
-                VmDetailsProperty(key='External IP', value=self._get_external_ip(external_service)),
+                VmDetailsProperty(key='External IP', value=self.get_external_ip(external_service)),
                 VmDetailsProperty(key='External Ports', value=self._get_external_service_ports(external_service)),
                 ]
 
@@ -56,13 +56,15 @@ class VmDetailsProvider(object):
 
         return None, None
 
-    def _get_internal_ip(self, internal_service):
+    @staticmethod
+    def get_internal_ip(internal_service):
         if internal_service:
             return internal_service.spec.cluster_ip
         else:
             return ''
 
-    def _get_external_ip(self, external_service):
+    @staticmethod
+    def get_external_ip(external_service):
         if not external_service:
             return ''
 

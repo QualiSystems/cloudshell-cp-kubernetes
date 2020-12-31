@@ -1,7 +1,11 @@
+import socket
+import time
 import traceback
 
+from dns.resolver import Resolver, NXDOMAIN
+
 from cloudshell.cp.core.flows import AbstractDeployFlow
-from cloudshell.cp.core.request_actions.models import DeployAppResult
+from cloudshell.cp.core.request_actions.models import DeployAppResult, Attribute
 
 from cloudshell.cp.kubernetes.common.additional_data_keys import DeployedAppAdditionalDataKeys
 from cloudshell.cp.kubernetes.common.utils import convert_app_name_to_valid_kubernetes_name, convert_to_int_list, \
@@ -92,7 +96,13 @@ class DeployFlow(AbstractDeployFlow):
                                    vmName=cloudshell_name,
                                    vmDetailsData=vm_details,
                                    deployedAppAdditionalData=additional_data,
-                                   deployedAppAddress=kubernetes_app_name)  # todo - what address to use here?
+                                   deployedAppAttributes=[
+                                       Attribute("Public IP",
+                                                 self._service_provider.networking_service.get_app_ext_address(
+                                                     kubernetes_app_name, namespace))],
+                                   deployedAppAddress=self._service_provider.networking_service.get_app_int_address(
+                                       kubernetes_app_name,
+                                       namespace))  # todo - what address to use here?
         except:
             self._do_rollback_safely(namespace=namespace,
                                      cs_app_name=deploy_app.actionParams.appName,

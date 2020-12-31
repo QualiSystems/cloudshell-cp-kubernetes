@@ -1,8 +1,11 @@
+import socket
+from dns.resolver import Resolver, NXDOMAIN
 from kubernetes.client import V1ObjectMeta, V1Service, V1ServiceSpec, V1ServicePort, V1ServiceList, \
     V1DeleteOptions
 from kubernetes.client.rest import ApiException
 
 from cloudshell.cp.kubernetes.services.tags import TagsService
+from cloudshell.cp.kubernetes.services.vm_details import VmDetailsProvider
 
 
 class KubernetesNetworkingService(object):
@@ -138,6 +141,52 @@ class KubernetesNetworkingService(object):
         selector_tag = self._get_service_app_name_selector(app_name)
         return self._clients.core_api.list_namespaced_service(namespace=namespace,
                                                               label_selector=selector_tag).items
+
+    def get_ext_services_by_app_name(self, namespace, app_name):
+        """
+        :param str namespace:
+        :param str app_name:
+        :rtype: List[V1Service]
+        """
+        selector_tag = self._get_service_app_name_selector(app_name)
+        selector_tag = "{},{}=={}".format(selector_tag, TagsService.EXTERNAL_SERVICE, 'true')
+        return self._clients.core_api.list_namespaced_service(namespace=namespace,
+                                                              label_selector=selector_tag).items
+
+    def get_app_ext_address(self, app_name, namespace):
+        ext_service = self.get_ext_services_by_app_name(namespace, app_name)
+        address = ""
+        if ext_service:
+            ext_host = VmDetailsProvider.get_external_ip(ext_service[0])
+            if ext_host:
+                try:
+                    address = socket.gethostbyname(ext_host)
+                except:
+                    res = Resolver()
+                    res.nameservers = ['8.8.8.8']
+                    try:
+                        address = res.resolve(ext_host)[0]
+                    except NXDOMAIN:
+                        address = ext_host
+        return address
+
+    def get_int_services_by_app_name(self, namespace, app_name):
+        """
+        :param str namespace:
+        :param str app_name:
+        :rtype: List[V1Service]
+        """
+        selector_tag = self._get_service_app_name_selector(app_name)
+        selector_tag = "{},{}=={}".format(selector_tag, TagsService.INTERNAL_SERVICE, 'true')
+        return self._clients.core_api.list_namespaced_service(namespace=namespace,
+                                                              label_selector=selector_tag).items
+
+    def get_app_int_address(self, app_name, namespace):
+        int_service = self.get_int_services_by_app_name(namespace, app_name)
+        address = app_name
+        if int_service:
+            address = VmDetailsProvider.get_internal_ip(int_service[0])
+        return address
 
     def filter_by_label(self, filter_query):
         """
