@@ -15,4 +15,4 @@ class AutolaodFlow(object):
         # list nodes and make sure we have 1 or more nodes just to check authentication works
         nodes = self.api_clients.core_api.list_node(watch=False)
         if not nodes or len(nodes.items) < 1:
-            raise ValueError("Cluster '{}' has zero (0) nodes".format(cloud_provider_resource.cluster_name))
+            raise ValueError("Cluster '{}' has zero (0) nodes".format(cloud_provider_resource.name))

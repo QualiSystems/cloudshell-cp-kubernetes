@@ -1,3 +1,4 @@
+import re
 
 
 def get_provider_tag_name(tag_name):
@@ -9,7 +10,8 @@ def get_provider_tag_name(tag_name):
 
 
 class TagsService(object):
-    SANDBOX_ID = get_provider_tag_name('sandbox-id')
+    # SANDBOX_ID = get_provider_tag_name('sandbox-id')
+    SANDBOX_ID = "SandboxId"
 
     INTERNAL_PORT_PREFIX = 'pi'
     EXTERNAL_PORT_PREFIX = 'pe'
@@ -27,3 +29,26 @@ class TagsService(object):
         :return:
         """
         return get_provider_tag_name('selector-{app_name}'.format(app_name=app_name))
+
+    @staticmethod
+    def escape_label_value(value):
+        """
+        :param str value:
+        """
+        return re.sub(r"\s", "_", value)
+
+    def __init__(self, context):
+        if not hasattr(context, "reservation") or context.reservation is None:
+            raise Exception("Cannot find reservation context.")
+        reservation = context.reservation
+        self.sandbox_id = reservation.reservation_id
+        self.owner = self.escape_label_value(reservation.owner_user)
+        self.domain = self.escape_label_value(reservation.domain)
+        self.blueprint_name = self.escape_label_value(reservation.environment_name)
+
+    def get_default_labels(self):
+        return {self.SANDBOX_ID: self.sandbox_id,
+                "CreatedBy": "cloudshell",
+                "Owner": self.owner,
+                "Domain": self.domain,
+                "Blueprint": self.blueprint_name}

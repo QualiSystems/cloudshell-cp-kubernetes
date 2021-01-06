@@ -1,8 +1,4 @@
-import socket
-import time
 import traceback
-
-from dns.resolver import Resolver, NXDOMAIN
 
 from cloudshell.cp.core.flows import AbstractDeployFlow
 from cloudshell.cp.core.request_actions.models import DeployAppResult, Attribute
@@ -13,21 +9,22 @@ from cloudshell.cp.kubernetes.common.utils import convert_app_name_to_valid_kube
 from cloudshell.cp.kubernetes.models.deploy_app import KubernetesDeployApp
 from cloudshell.cp.kubernetes.models.deployment_requests import ApplicationImage, AppDeploymentRequest, \
     AppComputeSpecKubernetes, AppComputeSpecKubernetesResources
-from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class DeployFlow(AbstractDeployFlow):
-    def __init__(self, logger, resource_config, service_provider, vm_details_provider):
+    def __init__(self, logger, resource_config, service_provider, vm_details_provider, tag_service):
         """
         :param logging.Logger logger:
         :param cloudshell.cp.kubernetes.resource_config.KubernetesResourceConfig resource_config:
         :param cloudshell.cp.kubernetes.services.service_provider.ServiceProvider service_provider:
         :param cloudshell.cp.kubernetes.services.vm_details.VmDetailsProvider vm_details_provider:
+        :param cloudshell.cp.kubernetes.services.tags.TagsService tag_service:
         """
         super().__init__(logger)
         self._resource_config = resource_config
         self._service_provider = service_provider
         self._vm_details_provider = vm_details_provider
+        self._tag_service = tag_service
 
     def _deploy(self, request_actions):
         """
@@ -36,7 +33,8 @@ class DeployFlow(AbstractDeployFlow):
         deploy_app = request_actions.deploy_app
         if not isinstance(deploy_app, KubernetesDeployApp):
             raise Exception("Deployment Path is not registered")
-        sandbox_tag = {TagsService.SANDBOX_ID: self._resource_config.sandbox_id}
+        # sandbox_tag = {TagsService.SANDBOX_ID: self._resource_config.sandbox_id}
+        default_labels = self._tag_service.get_default_labels()
 
         # deployment_model = create_deployment_model_from_action(deploy_action)
         kubernetes_app_name = convert_app_name_to_valid_kubernetes_name(deploy_app.app_name)
@@ -55,12 +53,12 @@ class DeployFlow(AbstractDeployFlow):
             created_services = self._service_provider.networking_service.create_internal_external_set(
                 namespace=namespace,
                 name=kubernetes_app_name,
-                labels=dict(sandbox_tag),
+                labels=dict(default_labels),
                 internal_ports=internal_ports,
                 external_ports=external_ports,
                 external_service_type=self._resource_config.external_service_type)
 
-            deployment_labels = dict(sandbox_tag)
+            deployment_labels = dict(default_labels)
             for created_service in created_services:
                 deployment_labels.update(created_service.spec.selector)
 

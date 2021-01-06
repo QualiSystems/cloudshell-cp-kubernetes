@@ -12,6 +12,8 @@ from cloudshell.cp.kubernetes.models.clients import KubernetesClients
 
 
 class ApiClientsProvider(object):
+    def __init__(self, logger):
+        self._logger = logger
 
     def get_api_clients(self, resource_config):
         """
@@ -24,6 +26,8 @@ class ApiClientsProvider(object):
         # todo - alexaz - Need to add support for urls so that we can download a config file from a central location and
         # todo          - also have the config file password protected.
         if resource_config.aws_access_key_id and resource_config.aws_secret_access_key:
+            self._logger.debug("EKS config for, key-ID {}, secret-key {}".format(resource_config.aws_access_key_id,
+                                                                                resource_config.aws_secret_access_key))
             api_client = self._new_client_from_eks_config(resource_config.config_file_path,
                                                           resource_config.aws_access_key_id,
                                                           resource_config.aws_secret_access_key)

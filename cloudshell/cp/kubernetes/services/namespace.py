@@ -36,6 +36,8 @@ class KubernetesNamespaceService(object):
         :param str sandbox_id:
         :rtype: str
         """
+        if not sandbox_id:
+            return Exception("Sandbox ID not defined.")
         return "cloudshell-{}".format(sandbox_id)
         # return "default"  # todo - alexaz - change this after implementing PrepreSandboxInfra
 
