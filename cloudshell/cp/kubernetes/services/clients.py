@@ -1,8 +1,6 @@
-import base64
 import os
-import re
-import boto3
-from botocore.signers import RequestSigner
+import botocore.session
+from awscli.customizations.eks.get_token import STSClientFactory, TokenGenerator
 from kubernetes.client import ApiClient, Configuration
 from kubernetes.client.api import AppsV1Api, CoreV1Api
 from kubernetes.config import new_client_from_config, ConfigException
@@ -26,8 +24,8 @@ class ApiClientsProvider(object):
         # todo - alexaz - Need to add support for urls so that we can download a config file from a central location and
         # todo          - also have the config file password protected.
         if resource_config.aws_access_key_id and resource_config.aws_secret_access_key:
-            self._logger.debug("EKS config for, key-ID {}, secret-key {}".format(resource_config.aws_access_key_id,
-                                                                                resource_config.aws_secret_access_key))
+            # self._logger.debug("EKS config for, key-ID {}, secret-key {}".format(resource_config.aws_access_key_id,
+            #                                                                      resource_config.aws_secret_access_key))
             api_client = self._new_client_from_eks_config(resource_config.config_file_path,
                                                           resource_config.aws_access_key_id,
                                                           resource_config.aws_secret_access_key)
@@ -43,7 +41,7 @@ class ApiClientsProvider(object):
                                     aws_secret_access_key=None):
         client_config = type.__call__(Configuration)
 
-        eks_loader = EKSKubeConfigLoader(config_path, aws_access_key_id, aws_secret_access_key)
+        eks_loader = EKSKubeConfigLoader(self._logger, config_path, aws_access_key_id, aws_secret_access_key)
         eks_loader.load_and_set(client_config)
         return ApiClient(configuration=client_config)
 
@@ -51,7 +49,8 @@ class ApiClientsProvider(object):
 class EKSKubeConfigLoader(KubeConfigLoader):
     STS_TOKEN_EXPIRES_IN = 60
 
-    def __init__(self, config_path=None, aws_access_key_id=None, aws_secret_access_key=None):
+    def __init__(self, logger, config_path=None, aws_access_key_id=None, aws_secret_access_key=None):
+        self._logger = logger
         kcfg = KubeConfigMerger(config_path)
 
         if kcfg.config is None:
@@ -71,144 +70,11 @@ class EKSKubeConfigLoader(KubeConfigLoader):
         self.token = self._get_eks_bearer_token(cluster_id, region)
 
     def _get_eks_bearer_token(self, cluster_id, region):
-        session = boto3.session.Session(aws_access_key_id=self._aws_access_key_id,
-                                        aws_secret_access_key=self._aws_secret_access_key)
-
-        client = session.client('sts', region_name=region)
-        service_id = client.meta.service_model.service_id
-
-        signer = RequestSigner(
-            service_id,
-            region,
-            'sts',
-            'v4',
-            session.get_credentials(),
-            session.events
-        )
-
-        params = {
-            'method': 'GET',
-            'url': 'https://sts.{}.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15'.format(region),
-            'body': {},
-            'headers': {
-                'x-k8s-aws-id': cluster_id
-            },
-            'context': {}
-        }
-
-        signed_url = signer.generate_presigned_url(
-            params,
-            region_name=region,
-            expires_in=self.STS_TOKEN_EXPIRES_IN,
-            operation_name=''
-        )
-
-        base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
-
-        # remove any base64 encoding padding:
-        return 'Bearer k8s-aws-v1.' + re.sub(r'=*', '', base64_url)
-
-# super(EKSKubeConfigLoader, self)._load_authentication()
-# class ConfigBuilderBase(object):
-#     _config_base_template = "apiVersion: v1\n" \
-#                             "clusters: \n" \
-#                             "- cluster: \n" \
-#                             "[[cluster_section]]" \
-#                             "  name: {cluster_name}\n" \
-#                             "contexts: \n" \
-#                             "- context: \n" \
-#                             "    cluster: {cluster_name}\n" \
-#                             "    user: {username}\n" \
-#                             "  name: {cluster_name}-context\n" \
-#                             "current-context: {cluster_name}-context\n" \
-#                             "kind: Config\n" \
-#                             "preferences: {{}}\n" \
-#                             "users: \n" \
-#                             "- name: {username}\n" \
-#                             "  user:\n"
-#
-#     def build(self, kube_clp):
-#         raise NotImplementedError('Base class. Use a derived class instead.')
-#
-#     def _get_base_template(self, skip_tls_veify=True, certificate_authority=None):
-#         cluster_section = self._build_cluster_section(skip_tls_veify, certificate_authority)
-#         return self._config_base_template.replace("[[cluster_section]]", cluster_section)
-#
-#     def _build_cluster_section(self, skip_tls_veify, certificate_authority):
-#         cluster_section = ""
-#
-#         if skip_tls_veify:
-#             cluster_section += "    insecure-skip-tls-verify: true\n"
-#
-#         if certificate_authority:
-#             cluster_section += "    certificate-authority: {}\n".format(certificate_authority)
-#
-#         cluster_section += "    server: {server}\n"
-#
-#         return cluster_section
-#
-#
-# class BasicAuthConfigBuilder(ConfigBuilderBase):
-#     def build(self, kube_clp):
-#         """
-#         :param data_model.Kubernetes kube_clp:
-#         :rtype: str
-#         """
-#         config_template = super(BasicAuthConfigBuilder, self)._get_base_template()
-#         config_template += "    username: {username}\n" \
-#                            "    password: {password}\n"
-#
-#         return config_template.format(cluster_name=kube_clp.cluster_name,
-#                                       server=kube_clp.server,
-#                                       username=kube_clp.user,
-#                                       password=kube_clp.password)
-#
-#
-# class CertificateAuthConfigBuilder(ConfigBuilderBase):
-#     def build(self, kube_clp):
-#         """
-#         :param data_model.Kubernetes kube_clp:
-#         :rtype: str
-#         """
-#         config_template = super(CertificateAuthConfigBuilder, self)._get_base_template()
-#         config_template += "    client-certificate-data: {certificate_data}\n" \
-#                            "    client-key-data: {key_data}\n"
-#
-#         certificate_data = self._read_text_file(kube_clp.client_certificate_path)
-#         key_data = self._read_text_file(kube_clp.client_key_path)
-#
-#         return config_template.format(cluster_name=kube_clp.cluster_name,
-#                                       server=kube_clp.server,
-#                                       certificate_data=certificate_data,
-#                                       key_data=key_data,
-#                                       username='cloudshell')
-#
-#     @staticmethod
-#     def _read_text_file(file_path):
-#         with open(file_path, 'r')as f:
-#             return f.read()
-#
-#     # def _config_builder(self, cluster_name, server, username, password):
-#     #     config = "apiVersion: v1\n" \
-#     #              "clusters:\n" \
-#     #              "- cluster:\n" \
-#     #              "    insecure-skip-tls-verify: true\n" \
-#     #              "    server: {server}\n" \
-#     #              "  name: {cluster_name}\n" \
-#     #              "contexts:\n" \
-#     #              "- context:\n" \
-#     #              "    cluster: {cluster_name}\n" \
-#     #              "    user: {username}\n" \
-#     #              "  name: {cluster_name}-context\n" \
-#     #              "current-context: {cluster_name}-context\n" \
-#     #              "kind: Config\n" \
-#     #              "preferences: {{}}\n" \
-#     #              "users:\n" \
-#     #              "- name: {username}\n" \
-#     #              "  user:\n" \
-#     #              "    password: {password}\n" \
-#     #              "    username: {username}\n".format(cluster_name=cluster_name,
-#     #                                                  server=server,
-#     #                                                  username=username,
-#     #                                                  password=password)
-#     #     return config
+        work_session = botocore.session.get_session()
+        work_session.set_credentials(self._aws_access_key_id, self._aws_secret_access_key)
+        client_factory = STSClientFactory(work_session)
+        sts_client = client_factory.get_sts_client(region_name=region)
+        token = TokenGenerator(sts_client).get_token(cluster_id)
+        token = "Bearer {}".format(token)
+        # self._logger.debug("EKS Token: {}".format(token))
+        return token
