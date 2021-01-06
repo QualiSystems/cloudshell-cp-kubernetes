@@ -48,7 +48,7 @@ class TagsService(object):
 
     def get_default_labels(self):
         return {self.SANDBOX_ID: self.sandbox_id,
-                "CreatedBy": "cloudshell",
+                "CreatedBy": "CloudShell",
                 "Owner": self.owner,
                 "Domain": self.domain,
                 "Blueprint": self.blueprint_name}
