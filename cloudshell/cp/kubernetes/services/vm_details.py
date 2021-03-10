@@ -7,9 +7,6 @@ from cloudshell.cp.kubernetes.services.tags import TagsService
 
 
 class VmDetailsProvider(object):
-    def __init__(self):
-        pass
-
     def create_vm_details(self, services, deployment, deployed_app=None, deploy_app_name=""):
         """
         :param List[V1Service] services:

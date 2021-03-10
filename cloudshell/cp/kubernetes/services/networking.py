@@ -1,4 +1,6 @@
 import socket
+import time
+
 from dns.resolver import Resolver, NXDOMAIN
 from kubernetes.client import V1ObjectMeta, V1Service, V1ServiceSpec, V1ServicePort, V1ServiceList, \
     V1DeleteOptions
@@ -153,21 +155,46 @@ class KubernetesNetworkingService(object):
         return self._clients.core_api.list_namespaced_service(namespace=namespace,
                                                               label_selector=selector_tag).items
 
-    def get_app_ext_address(self, app_name, namespace):
-        ext_service = self.get_ext_services_by_app_name(namespace, app_name)
+    def get_app_ext_address(self, app_name, namespace, max_retries=1, timeout=1):
+        attempt = 0
         address = ""
-        if ext_service:
-            ext_host = VmDetailsProvider.get_external_ip(ext_service[0])
-            if ext_host:
+        while attempt < max_retries:
+            ext_service = self.get_ext_services_by_app_name(namespace, app_name)
+            if ext_service:
+                address = VmDetailsProvider.get_external_ip(ext_service[0])
+                if address:
+                    return address if self.is_ipaddr(address) else self.resolve_hostname(
+                        address, max_retries - attempt, timeout)
+            attempt += 1
+            attempt < max_retries and time.sleep(timeout)
+        return address
+
+    @staticmethod
+    def is_ipaddr(address):
+        try:
+            socket.inet_aton(address)
+            return True
+        except socket.error:
+            return False
+
+    @staticmethod
+    def resolve_hostname(hostname, max_retries=1, timeout=1):
+        attempt = 0
+        address = hostname
+        resolver = Resolver()
+        resolver.nameservers = ['8.8.8.8']
+        while attempt < max_retries:
+            try:
+                address = socket.gethostbyname(hostname)
+                break
+            except:
                 try:
-                    address = socket.gethostbyname(ext_host)
-                except:
-                    res = Resolver()
-                    res.nameservers = ['8.8.8.8']
-                    try:
-                        address = res.resolve(ext_host)[0]
-                    except NXDOMAIN:
-                        address = ext_host
+                    address = resolver.resolve(hostname)[0]
+                    break
+                except NXDOMAIN:
+                    # wait
+                    attempt += 1
+                    attempt < max_retries and time.sleep(timeout)
         return address
 
     def get_int_services_by_app_name(self, namespace, app_name):
