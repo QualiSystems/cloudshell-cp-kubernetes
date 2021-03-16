@@ -20,7 +20,8 @@ class RefreshIpFlow(object):
         :return:
         """
         ext_ip = self._service_provider.networking_service.get_app_ext_address(deployed_app.kubernetes_name,
-                                                                               deployed_app.namespace)
+                                                                               deployed_app.namespace, max_retries=6,
+                                                                               timeout=5)
         if ext_ip:
             cs_api = self._resource_config.api  # type: CloudShellAPISession
             cs_api.SetAttributeValue(deployed_app.name, "Public IP", str(ext_ip))

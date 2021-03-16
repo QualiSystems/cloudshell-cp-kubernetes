@@ -1,9 +1,12 @@
+from cloudshell.shell.standards.core.resource_config_entities import ResourceAttrRO
+
 from cloudshell.cp.core.request_actions.models import DeployedApp
 from cloudshell.cp.kubernetes.common.additional_data_keys import DeployedAppAdditionalDataKeys
 
 
 class KubernetesDeployedApp(DeployedApp):
     DEPLOYMENT_PATH = "Kubernetes Cloud Provider Shell 2G.Kubernetes Service"
+    wait_for_ip = ResourceAttrRO("Wait for IP", "DEPLOYMENT_PATH", "True")
 
     @property
     def kubernetes_name(self):

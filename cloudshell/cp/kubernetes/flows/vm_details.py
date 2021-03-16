@@ -32,6 +32,7 @@ class VmDetialsFlow(AbstractVMDetailsFlow):
                                                                  deployment=deployment,
                                                                  deployed_app=deployed_app,
                                                                  deploy_app_name=deployed_app.name)
+
         self._validate_external_ip(vm_details.vmInstanceData, deployed_app)
 
         return vm_details
@@ -39,6 +40,8 @@ class VmDetialsFlow(AbstractVMDetailsFlow):
     def _validate_external_ip(self, vm_inst_data, deployed_app):
         ext_ip = next(filter(lambda x: x.key == "External IP", vm_inst_data), None)
         if ext_ip and not ext_ip.value or not self._service_provider.networking_service.is_ipaddr(ext_ip.value):
-            ext_ip.value = self._service_provider.networking_service.get_app_ext_address(deployed_app.kubernetes_name,
-                                                                                         deployed_app.namespace,
-                                                                                         max_retries=6, timeout=5)
+            if deployed_app.wait_for_ip.lower() == "true":
+                ext_ip.value = self._service_provider.networking_service.get_app_ext_address(
+                    deployed_app.kubernetes_name,
+                    deployed_app.namespace,
+                    max_retries=6, timeout=5)
