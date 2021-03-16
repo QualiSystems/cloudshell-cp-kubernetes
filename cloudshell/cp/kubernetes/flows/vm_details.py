@@ -45,3 +45,4 @@ class VmDetialsFlow(AbstractVMDetailsFlow):
                     deployed_app.kubernetes_name,
                     deployed_app.namespace,
                     max_retries=6, timeout=5)
+            self._logger.debug("Ext IP: {}".format(ext_ip.value))

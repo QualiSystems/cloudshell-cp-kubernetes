@@ -163,6 +163,7 @@ class KubernetesNetworkingService(object):
             if ext_service:
                 address = VmDetailsProvider.get_external_ip(ext_service[0])
                 if address:
+                    self._logger.info("External address for {}: {}".format(app_name, address))
                     return address if self.is_ipaddr(address) else self.resolve_hostname(
                         address, max_retries - attempt, timeout)
             attempt += 1
@@ -177,22 +178,21 @@ class KubernetesNetworkingService(object):
         except socket.error:
             return False
 
-    @staticmethod
-    def resolve_hostname(hostname, max_retries=1, timeout=1):
+    def resolve_hostname(self, hostname, max_retries=1, timeout=1):
         attempt = 0
         address = hostname
         resolver = Resolver()
         resolver.nameservers = ['8.8.8.8']
         while attempt < max_retries:
+            self._logger.debug("Resolve host retry {}, {}".format(attempt, address))
             try:
                 address = socket.gethostbyname(hostname)
                 break
             except:
                 try:
-                    address = resolver.resolve(hostname)[0]
+                    address = str(resolver.resolve(hostname)[0])
                     break
-                except NXDOMAIN:
-                    # wait
+                except:
                     attempt += 1
                     attempt < max_retries and time.sleep(timeout)
         return address
