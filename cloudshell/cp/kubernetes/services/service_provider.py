@@ -14,14 +14,20 @@ class ServiceProvider(object):
     @property
     @lru_cache()
     def networking_service(self):
-        return KubernetesNetworkingService(self.logger, self.api_clients, self.cancellation_manager)
+        return KubernetesNetworkingService(
+            self.logger, self.api_clients, self.cancellation_manager
+        )
 
     @property
     @lru_cache()
     def deployment_service(self):
-        return KubernetesDeploymentService(self.logger, self.api_clients, self.cancellation_manager)
+        return KubernetesDeploymentService(
+            self.logger, self.api_clients, self.cancellation_manager
+        )
 
     @property
     @lru_cache()
     def namespace_service(self):
-        return KubernetesNamespaceService(self.logger, self.api_clients, self.cancellation_manager)
+        return KubernetesNamespaceService(
+            self.logger, self.api_clients, self.cancellation_manager
+        )

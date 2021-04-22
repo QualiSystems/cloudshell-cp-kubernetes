@@ -1,7 +1,7 @@
 class KubernetesClients(object):
-
     def __init__(self, api_client, core_api, apps_api):
-        """
+        """Init.
+
         :param kubernetes.client.AppsV1Api apps_api:
         :param kubernetes.client.ApiClient api_client:
         :param kubernetes.client.CoreV1Api core_api:
