@@ -1,9 +1,7 @@
-from typing import List, Dict
-
-
 class ApplicationImage:
     def __init__(self, name, tag):
-        """
+        """Init.
+
         :param str name:
         :param str tag:
         """
@@ -13,7 +11,8 @@ class ApplicationImage:
 
 class AppComputeSpecKubernetesResources:
     def __init__(self, cpu, ram):
-        """
+        """Init.
+
         :param str cpu:
         :param str ram:
         """
@@ -23,7 +22,8 @@ class AppComputeSpecKubernetesResources:
 
 class AppComputeSpecKubernetes:
     def __init__(self, requests, limits):
-        """
+        """Init.
+
         :param AppComputeSpecKubernetesResources requests:
         :param AppComputeSpecKubernetesResources limits:
         """
@@ -32,9 +32,19 @@ class AppComputeSpecKubernetes:
 
 
 class AppDeploymentRequest:
-    def __init__(self, name, image, start_command, environment_variables, compute_spec, internal_ports, external_ports,
-                 replicas=1):
-        """
+    def __init__(
+        self,
+        name,
+        image,
+        start_command,
+        environment_variables,
+        compute_spec,
+        internal_ports,
+        external_ports,
+        replicas=1,
+    ):
+        """Init.
+
         :param str start_command:
         :param Dict[str, str] environment_variables:
         :param str name:
