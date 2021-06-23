@@ -7,7 +7,7 @@ from cloudshell.cp.kubernetes.common.additional_data_keys import (
 
 
 class KubernetesDeployedApp(DeployedApp):
-    DEPLOYMENT_PATH = "Kubernetes Cloud Provider Shell 2G.Kubernetes Service"
+    DEPLOYMENT_PATH = "Kubernetes Cloud Provider 2G.Kubernetes Service"
     wait_for_ip = ResourceAttrRO("Wait for IP", "DEPLOYMENT_PATH", "True")
 
     @property
